@@ -34,7 +34,7 @@ function App() {
       <header className="topbar">
         <div className="topbar__brand">
           <span className="topbar__brand-mark"></span>
-          CaliPlanner
+          <span className="topbar__brand-text">CaliPlanner</span>
         </div>
         <div className="topbar__tabs">
           {tabs.map(tabDef => (
@@ -50,7 +50,7 @@ function App() {
           <span className="topbar__chip">
             {state.meso.weeks.length}w · {tweaks.daysPerWeek}d/w
           </span>
-          <span>v0.1 · prototype</span>
+          <span>v0.2</span>
         </div>
       </header>
 

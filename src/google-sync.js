@@ -1,20 +1,26 @@
 // ============================================================
 // CaliPlanner — Google Sheets sync  (google-sync.js)
 // ============================================================
-// Caricato DOPO store.js nell'HTML. Non richiede JSX.
-// ============================================================
 
 (function () {
-  const STORAGE_KEY  = 'skillplanner.v1';
-  const WEBHOOK_KEY  = 'skillplanner.sheetsUrl';
+  const STORAGE_KEY   = 'skillplanner.v1';
+  const WEBHOOK_KEY   = 'skillplanner.sheetsUrl';
+  const LASTSYNC_KEY  = 'skillplanner.lastSync';
+  const PULLED_KEY    = 'skillplanner.autoPulled'; // sessionStorage — reset ad ogni nuova tab
+  const DEFAULT_URL   = 'https://script.google.com/macros/s/AKfycbzF2gbqU0AXJgjbqXC6Ovg5bE4ViY8mrOGBE5K5cnYTLG8wi6B9MRwp3eLAsrfQZfMQ4Q/exec';
 
-  // ── Legge l'URL webhook salvato (o chiede all'utente) ─────
+  // Preimposta l'URL se non è ancora salvato
+  if (!localStorage.getItem(WEBHOOK_KEY)) {
+    localStorage.setItem(WEBHOOK_KEY, DEFAULT_URL);
+  }
+
+  // ── URL webhook ───────────────────────────────────────────
   function getWebhookUrl(force) {
     let url = localStorage.getItem(WEBHOOK_KEY);
     if (!url || force) {
       url = prompt(
         '📋 Incolla qui l\'URL del tuo Apps Script Web App\n' +
-        '(lo trovi su Apps Script → Deploy → Gestisci deployment):',
+        '(Apps Script → Deploy → Gestisci deployment → copia URL):',
         url || ''
       );
       if (!url || !url.startsWith('https://')) {
@@ -27,109 +33,175 @@
     return url;
   }
 
-  // ── Costruisce il payload da sincronizzare ─────────────────
+  // ── Payload per il push ───────────────────────────────────
   function buildPayload() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) throw new Error('Nessun dato trovato in locale (skillplanner.v1).');
-
     const state = JSON.parse(raw);
-
-    // Aggiunge i nomi degli esercizi per leggibilità nel foglio
     const exerciseNames = {};
     if (window.SP_BY_ID) {
       for (const [id, ex] of Object.entries(window.SP_BY_ID)) {
         exerciseNames[id] = ex.name;
       }
     }
-
     return { ...state, exerciseNames };
   }
 
-  // ── Invio via fetch ────────────────────────────────────────
-  // Apps Script non manda CORS headers su POST → usiamo no-cors.
-  // La risposta è opaca (non leggibile), ma i dati arrivano al server.
-  // Per verificare il successo: apri il Google Sheet dopo il sync.
-  async function syncToSheets({ silent = false, forceConfig = false } = {}) {
+  // ── Fetch dati da Sheets (usato sia dall'auto-pull che dal pull manuale) ──
+  async function fetchFromSheets(url) {
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Risposta non valida dal server');
+    if (!data.state) throw new Error('Backup vuoto — esegui prima un sync (⬆)');
+    return data.state;
+  }
+
+  // ── AUTO-PULL all'avvio ───────────────────────────────────
+  // Viene chiamata subito quando il file carica, prima che React monti.
+  // Se i dati su Sheets sono diversi da quelli locali aggiorna e ricarica.
+  // Il flag in sessionStorage evita loop: si resetta alla chiusura della tab.
+  async function autoPull() {
+    if (sessionStorage.getItem(PULLED_KEY)) return; // già fatto in questa sessione
+    const url = localStorage.getItem(WEBHOOK_KEY);
+    if (!url) return; // non ancora configurato
+
+    try {
+      const remoteState = await fetchFromSheets(url);
+      sessionStorage.setItem(PULLED_KEY, '1');
+
+      const remoteJson = JSON.stringify(remoteState);
+      const localJson  = localStorage.getItem(STORAGE_KEY) || '';
+
+      if (remoteJson !== localJson) {
+        // Dati diversi: aggiorna silenziosamente e ricarica
+        localStorage.setItem(STORAGE_KEY, remoteJson);
+        localStorage.setItem(LASTSYNC_KEY,
+          new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+        );
+        location.reload();
+        // Il reload imposta subito PULLED_KEY, quindi il secondo caricamento non ri-fetcherà
+      }
+    } catch (_) {
+      // Errore silenzioso — la webapp continua con i dati locali
+      sessionStorage.setItem(PULLED_KEY, '1'); // non riprovare in questa sessione
+    }
+  }
+
+  // ── PUSH: webapp → Sheets ─────────────────────────────────
+  async function pushToSheets({ silent = false, forceConfig = false } = {}) {
     const url = getWebhookUrl(forceConfig);
-    if (!url) return;
+    if (!url) return false;
 
     let payload;
     try {
       payload = buildPayload();
     } catch (err) {
-      alert('❌ ' + err.message);
-      return;
+      if (!silent) alert('❌ ' + err.message);
+      return false;
     }
 
     try {
       await fetch(url, {
         method: 'POST',
-        mode: 'no-cors',          // richiesto da Apps Script
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(payload),
       });
 
-      if (!silent) {
-        alert(
-          '✅ Dati inviati al Google Sheet!\n\n' +
-          'Apri il foglio per verificare — il sync è asincrono,\n' +
-          'attendi 5-10 secondi se i dati non appaiono subito.'
-        );
-      }
+      const now = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      localStorage.setItem(LASTSYNC_KEY, now);
+      // Dopo un push consideriamo i dati "freschi" per questa sessione
+      sessionStorage.setItem(PULLED_KEY, '1');
+
+      if (!silent) alert('✅ Dati salvati su Google Sheets!');
+      return true;
     } catch (err) {
-      alert('❌ Errore di rete: ' + err.message + '\n\nControlla la connessione o l\'URL del deployment.');
+      if (!silent) alert('❌ Errore di rete: ' + err.message);
+      return false;
     }
   }
 
-  // ── Esporta nello scope globale ────────────────────────────
+  // ── PULL manuale: forza il refresh da Sheets ──────────────
+  async function pullFromSheets() {
+    const url = getWebhookUrl(false);
+    if (!url) return;
+
+    if (!confirm('⬇ Caricare i dati da Google Sheets?\nI dati locali verranno sostituiti.')) return;
+
+    try {
+      const remoteState = await fetchFromSheets(url);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteState));
+      localStorage.setItem(LASTSYNC_KEY,
+        new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+      );
+      sessionStorage.setItem(PULLED_KEY, '1');
+      location.reload();
+    } catch (err) {
+      alert('❌ ' + err.message);
+    }
+  }
+
+  // ── API pubblica ──────────────────────────────────────────
   window.SP_SYNC = {
-    sync:          syncToSheets,
-    configureUrl:  () => getWebhookUrl(true),
-    clearUrl:      () => { localStorage.removeItem(WEBHOOK_KEY); alert('URL rimosso.'); },
-    getUrl:        () => localStorage.getItem(WEBHOOK_KEY),
+    push:         pushToSheets,
+    pull:         pullFromSheets,
+    configureUrl: () => getWebhookUrl(true),
+    clearUrl:     () => { localStorage.removeItem(WEBHOOK_KEY); alert('URL rimosso.'); },
+    getUrl:       () => localStorage.getItem(WEBHOOK_KEY),
+    getLastSync:  () => localStorage.getItem(LASTSYNC_KEY),
   };
 
-  // ── Componente React: pulsante Sync nel topbar ─────────────
-  // Usato in SkillPlanner.html nel componente App principale.
+  // ── Componente React: pulsanti ⬆ ⬇ ⚙ ─────────────────────
   function SyncButton() {
-    const [syncing, setSyncing] = React.useState(false);
-    const [lastSync, setLastSync] = React.useState(() => {
-      // Mostra l'orario dell'ultimo sync se disponibile
-      return localStorage.getItem('skillplanner.lastSync') || null;
-    });
-
-    async function handleSync() {
-      setSyncing(true);
-      await window.SP_SYNC.sync({ silent: true });
-      const now = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      localStorage.setItem('skillplanner.lastSync', now);
-      setLastSync(now);
-      setSyncing(false);
-    }
-
-    function handleConfig(e) {
-      e.stopPropagation();
-      window.SP_SYNC.configureUrl();
-    }
-
+    const [pushing, setPushing] = React.useState(false);
+    const [pulling, setPulling] = React.useState(false);
+    const [lastSync, setLastSync] = React.useState(window.SP_SYNC.getLastSync);
     const hasUrl = !!window.SP_SYNC.getUrl();
+    const busy = pushing || pulling;
 
-    return React.createElement('div', { className: 'sync-wrap', title: hasUrl ? `Ultimo sync: ${lastSync || '—'}` : 'Configura URL Sheets' },
+    async function handlePush() {
+      setPushing(true);
+      const ok = await window.SP_SYNC.push({ silent: false });
+      if (ok) setLastSync(window.SP_SYNC.getLastSync());
+      setPushing(false);
+    }
+
+    async function handlePull() {
+      setPulling(true);
+      await window.SP_SYNC.pull(); // ricarica la pagina → setPulling(false) non serve
+      setPulling(false);
+    }
+
+    return React.createElement('div', {
+      className: 'sync-wrap',
+      title: lastSync ? `Ultimo sync: ${lastSync}` : 'Nessun sync ancora',
+    },
       React.createElement('button', {
-        className: `btn btn--sm sync-btn ${syncing ? 'sync-btn--syncing' : ''} ${!hasUrl ? 'sync-btn--unconfigured' : ''}`,
-        onClick: handleSync,
-        disabled: syncing,
-        title: hasUrl ? 'Sincronizza con Google Sheets' : 'Clicca per configurare l\'URL Sheets',
-      },
-        syncing ? '↻ Sync…' : (hasUrl ? '⬆ Sheets' : '⬆ Sheets ·')
-      ),
-      hasUrl && React.createElement('button', {
+        className: `btn btn--sm sync-btn ${pushing ? 'sync-btn--syncing' : ''} ${!hasUrl ? 'sync-btn--unconfigured' : ''}`,
+        onClick: handlePush,
+        disabled: busy,
+        title: hasUrl ? 'Salva su Google Sheets' : 'Clicca per configurare l\'URL',
+      }, pushing ? '↻' : '⬆'),
+
+      React.createElement('button', {
+        className: `btn btn--sm sync-btn ${pulling ? 'sync-btn--syncing' : ''}`,
+        onClick: handlePull,
+        disabled: busy || !hasUrl,
+        title: hasUrl ? 'Forza caricamento da Sheets' : 'Configura prima l\'URL (⬆)',
+        style: { opacity: hasUrl ? 1 : 0.35 },
+      }, pulling ? '↻' : '⬇'),
+
+      React.createElement('button', {
         className: 'btn btn--sm btn--ghost sync-config-btn',
-        onClick: handleConfig,
+        onClick: (e) => { e.stopPropagation(); window.SP_SYNC.configureUrl(); },
         title: 'Cambia URL Sheets',
       }, '⚙')
     );
   }
 
   window.SyncButton = SyncButton;
+
+  // ── Avvia l'auto-pull immediatamente ─────────────────────
+  autoPull();
 })();

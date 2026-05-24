@@ -2299,6 +2299,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   }
   .topbar__meta { display: none; }
   .topbar__brand { font-size: 13px; flex-shrink: 0; }
+  .topbar__brand-text { display: none; }
   .topbar__tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -2542,11 +2543,15 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   display: flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;   /* non viene schiacciato dai tab (flex:1) */
+  margin-left: auto; /* si sposta a destra se c'è spazio */
 }
 .sync-btn {
   font-family: var(--font-mono);
+  font-size: 13px;
   letter-spacing: 0.02em;
   transition: background 0.1s, opacity 0.1s;
+  min-width: 28px;
 }
 .sync-btn--unconfigured {
   border-style: dashed;
@@ -2562,6 +2567,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   color: var(--fg-subtle);
 }
 .sync-config-btn:hover { color: var(--fg); }
+
+@media (max-width: 768px) {
+  .sync-wrap { margin-left: 0; gap: 1px; }
+  .sync-btn  { padding: 4px 7px; font-size: 12px; min-width: 26px; }
+  .sync-config-btn { display: none; } /* nasconde ⚙ su mobile per risparmiare spazio */
+}
 
 /* ============ DESKTOP (≥769px) — layout a griglia per il progress ============ */
 @media (min-width: 769px) {

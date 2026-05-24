@@ -6,12 +6,13 @@
 // Copia l'URL del deployment e incollalo nella webapp.
 // ============================================================
 
-// ── Entry point ──────────────────────────────────────────────
+// ── doPost — webapp → Sheets (scrittura) ─────────────────────
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+    writeBackup(ss, payload);       // JSON grezzo per il ripristino
     writeInfo(ss, payload);
     writePiano(ss, payload);
     writeCompletati(ss, payload);
@@ -24,9 +25,31 @@ function doPost(e) {
   }
 }
 
-// Chiamata una volta sola per creare i tab e la formattazione iniziale.
-// Aprila da: Apps Script → seleziona "setupSheet" → ▶ Esegui
-// Poi controlla Apps Script → Esecuzioni per vedere il log.
+// ── doGet — Sheets → webapp (lettura) ────────────────────────
+// La webapp fa GET allo stesso URL del deployment per recuperare
+// il backup JSON e ripristinarlo in localStorage.
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('_Backup');
+
+    if (!sh) {
+      return ko('Nessun backup trovato. Esegui prima almeno un sync dalla webapp (⬆).');
+    }
+
+    const raw = sh.getRange('A1').getValue();
+    if (!raw) {
+      return ko('Il backup è vuoto. Esegui prima un sync dalla webapp (⬆).');
+    }
+
+    const state = JSON.parse(raw);
+    return ok({ state: state });
+  } catch (err) {
+    return ko(err.toString());
+  }
+}
+
+// ── Setup iniziale (eseguire una sola volta dall'editor) ──────
 function setupSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   Logger.log('Spreadsheet: ' + ss.getName());
@@ -55,24 +78,53 @@ function setupSheet() {
     sh.setFrozenRows(1);
   });
 
-  // Porta "Info" come primo tab
+  // Crea il tab _Backup (nascosto, usato dal doGet)
+  var backup = ss.getSheetByName('_Backup');
+  if (!backup) {
+    backup = ss.insertSheet('_Backup');
+    backup.hideSheet();
+    Logger.log('Creato tab _Backup (nascosto)');
+  }
+
+  // Porta "Info" come primo tab visibile
   var info = ss.getSheetByName('Info');
   if (info) {
     ss.setActiveSheet(info);
     ss.moveActiveSheet(1);
   }
 
-  // Rinomina il foglio predefinito "Foglio1" (o "Sheet1") se ancora presente
+  // Rinomina il foglio predefinito se ancora presente
   var defaultSheet = ss.getSheetByName('Foglio1') || ss.getSheetByName('Sheet1');
   if (defaultSheet) {
     defaultSheet.setName('_old');
     Logger.log('Foglio di default rinominato in _old — puoi eliminarlo.');
   }
 
-  Logger.log('setupSheet completato. Tab creati: ' + tabs.map(function(t){ return t.name; }).join(', '));
+  Logger.log('setupSheet completato: ' + tabs.map(function(t){ return t.name; }).join(', ') + ', _Backup');
 }
 
-// ── Sheet: ⚙️ Info ───────────────────────────────────────────
+// ── Sheet: _Backup — JSON grezzo (usato da doGet) ─────────────
+function writeBackup(ss, payload) {
+  var sh = ss.getSheetByName('_Backup');
+  if (!sh) {
+    sh = ss.insertSheet('_Backup');
+    sh.hideSheet();
+  }
+  // Salva lo state puro (senza exerciseNames che sono read-only della webapp)
+  var state = {
+    meso:               payload.meso,
+    activeWeekIndex:    payload.activeWeekIndex,
+    today:              payload.today,
+    completedItems:     payload.completedItems,
+    userExerciseLevels: payload.userExerciseLevels,
+    userExercises:      payload.userExercises,
+  };
+  sh.getRange('A1').setValue(JSON.stringify(state));
+  sh.getRange('B1').setValue(new Date().toLocaleString('it-IT'));
+  sh.getRange('A1:B1').setNotes([['Backup automatico — non modificare', 'Ultimo aggiornamento']]);
+}
+
+// ── Sheet: Info ───────────────────────────────────────────────
 function writeInfo(ss, p) {
   const sh = getOrCreate(ss, 'Info');
   sh.clearContents();
@@ -95,7 +147,7 @@ function writeInfo(ss, p) {
   sh.setFrozenRows(1);
 }
 
-// ── Sheet: 📋 Piano ──────────────────────────────────────────
+// ── Sheet: Piano ──────────────────────────────────────────────
 function writePiano(ss, p) {
   const sh = getOrCreate(ss, 'Piano');
   sh.clearContents();
@@ -140,7 +192,7 @@ function writePiano(ss, p) {
   sh.setFrozenRows(1);
 }
 
-// ── Sheet: ✅ Completati ─────────────────────────────────────
+// ── Sheet: Completati ─────────────────────────────────────────
 function writeCompletati(ss, p) {
   const sh = getOrCreate(ss, 'Completati');
   sh.clearContents();
@@ -156,7 +208,7 @@ function writeCompletati(ss, p) {
   sh.setFrozenRows(1);
 }
 
-// ── Sheet: 💪 Esercizi Custom ────────────────────────────────
+// ── Sheet: Esercizi Custom ────────────────────────────────────
 function writeEserciziCustom(ss, p) {
   const sh = getOrCreate(ss, 'Esercizi Custom');
   sh.clearContents();
@@ -186,7 +238,7 @@ function writeEserciziCustom(ss, p) {
   sh.setFrozenRows(1);
 }
 
-// ── Sheet: 🎯 Livelli Custom ─────────────────────────────────
+// ── Sheet: Livelli Custom ─────────────────────────────────────
 function writeLivelliCustom(ss, p) {
   const sh = getOrCreate(ss, 'Livelli Custom');
   sh.clearContents();
@@ -201,19 +253,19 @@ function writeLivelliCustom(ss, p) {
   sh.setFrozenRows(1);
 }
 
-// ── Helpers ──────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────
 function getOrCreate(ss, name) {
   return ss.getSheetByName(name) || ss.insertSheet(name);
 }
 
 function ok(data) {
   return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, ...data }))
+    .createTextOutput(JSON.stringify(Object.assign({ ok: true }, data)))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 function ko(error) {
   return ContentService
-    .createTextOutput(JSON.stringify({ ok: false, error }))
+    .createTextOutput(JSON.stringify({ ok: false, error: error }))
     .setMimeType(ContentService.MimeType.JSON);
 }
