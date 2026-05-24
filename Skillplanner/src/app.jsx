@@ -45,8 +45,8 @@ function App() {
             >{tabDef.label}</button>
           ))}
         </div>
+        <SyncButton />
         <div className="topbar__meta">
-          <SyncButton />
           <span className="topbar__chip">
             {state.meso.weeks.length}w · {tweaks.daysPerWeek}d/w
           </span>
