@@ -2537,6 +2537,32 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   }
 }
 
+/* ============ SYNC BUTTON (Google Sheets) ============ */
+.sync-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.sync-btn {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  transition: background 0.1s, opacity 0.1s;
+}
+.sync-btn--unconfigured {
+  border-style: dashed;
+  color: var(--fg-muted);
+}
+.sync-btn--syncing {
+  opacity: 0.6;
+  cursor: wait;
+}
+.sync-config-btn {
+  padding: 3px 5px;
+  font-size: 11px;
+  color: var(--fg-subtle);
+}
+.sync-config-btn:hover { color: var(--fg); }
+
 /* ============ DESKTOP (≥769px) — layout a griglia per il progress ============ */
 @media (min-width: 769px) {
   /* KPI row: le card si espandono uguali invece di avere larghezza fissa */
