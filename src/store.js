@@ -1,7 +1,39 @@
 // SkillPlanner — store with localStorage persistence
 // Single state object, useStore() hook
 
-const SP_STORE_KEY = 'skillplanner.v1';
+// ── Profile management ────────────────────────────────────────
+const SP_PROFILE_KEY = 'skillplanner.profile';
+const SP_PROFILES = {
+  lulu: { label: 'Lulù', emoji: '🌸' },
+  gru:  { label: 'Gru',  emoji: '🦅' },
+};
+
+function getActiveProfile() {
+  const p = localStorage.getItem(SP_PROFILE_KEY);
+  return (p && SP_PROFILES[p]) ? p : 'lulu';
+}
+
+function getStoreKey() {
+  return 'skillplanner.v1.' + getActiveProfile();
+}
+
+// Migration: if lulù and old key exists, move it over (run once)
+(function migrateOldKey() {
+  const OLD_KEY = 'skillplanner.v1';
+  const old = localStorage.getItem(OLD_KEY);
+  if (old && !localStorage.getItem('skillplanner.v1.lulu')) {
+    localStorage.setItem('skillplanner.v1.lulu', old);
+    localStorage.removeItem(OLD_KEY);
+  }
+})();
+
+function switchProfile(name) {
+  if (!SP_PROFILES[name]) return;
+  localStorage.setItem(SP_PROFILE_KEY, name);
+  location.reload();
+}
+
+const SP_STORE_KEY = getStoreKey();
 
 const SP_I18N = {
   IT: {
@@ -96,14 +128,14 @@ const SP_I18N = {
 
 function spLoadState() {
   try {
-    const raw = localStorage.getItem(SP_STORE_KEY);
+    const raw = localStorage.getItem(getStoreKey());
     if (raw) return JSON.parse(raw);
   } catch (e) { /* ignore */ }
   return null;
 }
 
 function spSaveState(state) {
-  try { localStorage.setItem(SP_STORE_KEY, JSON.stringify(state)); }
+  try { localStorage.setItem(getStoreKey(), JSON.stringify(state)); }
   catch (e) { /* ignore */ }
 }
 
@@ -265,7 +297,7 @@ function useSpStore() {
       return { ...s, meso };
     }),
     resetAll: () => {
-      localStorage.removeItem(SP_STORE_KEY);
+      localStorage.removeItem(getStoreKey());
       setState(spInitialState());
     },
 
@@ -457,4 +489,6 @@ window.SP_STORE = {
   useSpStore, spDayFatigue, spWeekFatigue, spFatigueState,
   spDayHighIntensityConflict, spRegressionId, spProgressionId,
   spCurrentSkillStop, spGetEffectiveLevel, SP_I18N,
+  // Profile
+  getActiveProfile, switchProfile, SP_PROFILES,
 };

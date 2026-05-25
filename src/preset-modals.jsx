@@ -237,26 +237,20 @@ function IntensityCalibrationModal({ onClose, userLevels, actions, t }) {
   );
 }
 
-Object.assign(window, {
-  PresetCard, SessionPresetModal, FinisherModal, WeekPresetModal, IntensityCalibrationModal,
-  ExerciseEditorModal,
-});
-
 // ─────────────────────────────────────────────────────────────────────────
 // Exercise editor — create / edit a custom user exercise
+// (definita PRIMA di Object.assign per evitare problemi di hoisting con Babel)
 // ─────────────────────────────────────────────────────────────────────────
-function ExerciseEditorModal({ onClose, actions, existing }) {
+function ExerciseEditorModal({ onClose, actions, existing, initialForm }) {
   const isEdit = !!existing;
-  const blank = {
-    name: '',
-    skill: 'PLANCHE',
-    category: 'SKILL',
-    level: 3,
-    stimulus: 'ISO',
-    fatigueLoad: 15,
-    scheme: { sets: 4, reps: '6', rpe: 8, rest: 120 },
-  };
-  const [form, setForm] = React.useState(() => existing ? structuredClone(existing) : blank);
+
+  // initialForm arriva pre-calcolato da planner.jsx (niente closure/lazy init)
+  // existing viene clonato per l'edit; initialForm usato per il nuovo esercizio
+  var _startForm = existing
+    ? { type:'CAL', name:'', skill:'PLANCHE', category:'SKILL', level:3, stimulus:'ISO', fatigueLoad:15, scheme:{ sets:4, reps:'6', rpe:8, rest:120 }, ...existing }
+    : (initialForm || { type:'CAL', name:'', skill:'PLANCHE', category:'SKILL', level:3, stimulus:'ISO', fatigueLoad:15, scheme:{ sets:4, reps:'6', rpe:8, rest:120 } });
+
+  const [form, setForm] = React.useState(_startForm);
 
   const update = (patch) => setForm(s => ({ ...s, ...patch }));
   const updateScheme = (patch) => setForm(s => ({ ...s, scheme: { ...s.scheme, ...patch } }));
@@ -276,14 +270,30 @@ function ExerciseEditorModal({ onClose, actions, existing }) {
     onClose();
   };
 
-  const SKILLS    = ['PLANCHE', 'FL', 'HSPU', 'CORE', 'ACC'];
-  const CATS      = ['SKILL', 'FORCE', 'COMP', 'ACC'];
-  const STIMULI   = ['ISO', 'DIN', 'ECC'];
-  const LEVELS    = [1, 2, 3, 4, 5];
+  const isGym = (form.type || 'CAL') === 'GYM';
+
+  const CAL_SKILLS = ['PLANCHE', 'FL', 'HSPU', 'CORE', 'ACC'];
+  const GYM_SKILLS = ['PETTO', 'SCHIENA', 'SPALLE', 'BICIPITI', 'TRICIPITI', 'GAMBE', 'CORE_G'];
+  const SKILLS     = isGym ? GYM_SKILLS : CAL_SKILLS;
+
+  const CAL_CATS = ['SKILL', 'FORCE', 'COMP', 'ACC'];
+  const GYM_CATS = ['COMPOUND', 'ISOLATED', 'ACC'];
+  const CATS     = isGym ? GYM_CATS : CAL_CATS;
+
+  const STIMULI = ['ISO', 'DIN', 'ECC'];
+  const LEVELS  = [1, 2, 3, 4, 5];
+
+  // Quando si cambia tipo reset skill/category ai default del tipo
+  function switchType(newType) {
+    if (newType === 'GYM') update({ type: 'GYM', skill: 'PETTO', category: 'COMPOUND', stimulus: 'DIN' });
+    else update({ type: 'CAL', skill: 'PLANCHE', category: 'SKILL', stimulus: 'ISO' });
+  }
+
+  const typeLabel = isGym ? '🏋️ Palestra' : '🤸 Calisthenics';
 
   return (
     <Modal
-      title={isEdit ? `Modifica · ${existing.name}` : 'Nuovo esercizio'}
+      title={isEdit ? `Modifica · ${existing.name}` : `Nuovo esercizio · ${typeLabel}`}
       onClose={onClose}
       footer={
         <>
@@ -297,19 +307,34 @@ function ExerciseEditorModal({ onClose, actions, existing }) {
       }
     >
       <div className="ex-form">
+        {/* Tipo — sempre modificabile anche in edit */}
+        <div className="ex-form__field ex-form__field--wide">
+          <label>Tipo</label>
+          <div className="type-toggle" style={{ marginBottom: 0 }}>
+            <button
+              className={`type-toggle__btn${!isGym ? ' type-toggle__btn--active' : ''}`}
+              onClick={() => switchType('CAL')}
+            >🤸 Calisthenics</button>
+            <button
+              className={`type-toggle__btn${isGym ? ' type-toggle__btn--active' : ''}`}
+              onClick={() => switchType('GYM')}
+            >🏋️ Palestra</button>
+          </div>
+        </div>
+
         <div className="ex-form__field ex-form__field--wide">
           <label>Nome esercizio</label>
           <input
             type="text"
             value={form.name}
             onChange={(e) => update({ name: e.target.value })}
-            placeholder="es. One Arm Pseudo Planche Push-up"
+            placeholder={isGym ? 'es. Panca piana bilanciere' : 'es. One Arm Pseudo Planche Push-up'}
             autoFocus
           />
         </div>
 
         <div className="ex-form__field">
-          <label>Skill</label>
+          <label>{isGym ? 'Gruppo muscolare' : 'Skill'}</label>
           <div className="ex-form__chips">
             {SKILLS.map(s => (
               <button
@@ -415,3 +440,8 @@ function ExerciseEditorModal({ onClose, actions, existing }) {
     </Modal>
   );
 }
+
+Object.assign(window, {
+  PresetCard, SessionPresetModal, FinisherModal, WeekPresetModal,
+  IntensityCalibrationModal, ExerciseEditorModal,
+});

@@ -59,6 +59,70 @@ window.SP_EXERCISES = [
   { id: 'ac-dragon-flag',  skill: 'CORE', name: 'Dragon Flag',                     category: 'FORCE', level: 4, stimulus: 'ECC', fatigueLoad: 14, scheme: { sets: 3, reps: '5',   rpe: 8, rest: 120 } },
   { id: 'ac-german-hang',  skill: 'ACC', name: 'German Hang',                      category: 'ACC',   level: 2, stimulus: 'ISO', fatigueLoad: 6,  scheme: { sets: 3, reps: '20s', rpe: 6, rest: 60 } },
 
+  // ===== PALESTRA — PETTO =====
+  { id: 'gm-bench-flat',   type: 'GYM', skill: 'PETTO',     name: 'Panca Piana',              category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 16, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-bench-incl',   type: 'GYM', skill: 'PETTO',     name: 'Panca Inclinata',           category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 15, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 120 } },
+  { id: 'gm-bench-decl',   type: 'GYM', skill: 'PETTO',     name: 'Panca Declinata',           category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 14, scheme: { sets: 3, reps: '10',  rpe: 8, rest: 120 } },
+  { id: 'gm-fly-dumb',     type: 'GYM', skill: 'PETTO',     name: 'Croci con Manubri',         category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 9,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-cable-cross',  type: 'GYM', skill: 'PETTO',     name: 'Crossover al Cavo',         category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '15',  rpe: 7, rest: 60 } },
+  { id: 'gm-chest-press',  type: 'GYM', skill: 'PETTO',     name: 'Chest Press Machine',       category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 10, scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-dip-petto',    type: 'GYM', skill: 'PETTO',     name: 'Dip (petto)',               category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 13, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 120 } },
+
+  // ===== PALESTRA — SCHIENA =====
+  { id: 'gm-lat-pull',     type: 'GYM', skill: 'SCHIENA',   name: 'Lat Machine',               category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 13, scheme: { sets: 4, reps: '10',  rpe: 7, rest: 120 } },
+  { id: 'gm-pullup',       type: 'GYM', skill: 'SCHIENA',   name: 'Trazioni',                  category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 14, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 120 } },
+  { id: 'gm-row-bar',      type: 'GYM', skill: 'SCHIENA',   name: 'Rematore con Bilanciere',   category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 16, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-row-dumb',     type: 'GYM', skill: 'SCHIENA',   name: 'Rematore con Manubrio',     category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 12, scheme: { sets: 3, reps: '10',  rpe: 8, rest: 90 } },
+  { id: 'gm-row-cable',    type: 'GYM', skill: 'SCHIENA',   name: 'Rematore al Cavo',          category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 11, scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-deadlift',     type: 'GYM', skill: 'SCHIENA',   name: 'Stacco da Terra',           category: 'FORCE', level: 3, stimulus: 'DIN', fatigueLoad: 24, scheme: { sets: 4, reps: '5',   rpe: 8, rest: 210 } },
+  { id: 'gm-tbar-row',     type: 'GYM', skill: 'SCHIENA',   name: 'T-Bar Row',                 category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 15, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-face-pull',    type: 'GYM', skill: 'SCHIENA',   name: 'Face Pull',                 category: 'ACC',   level: 1, stimulus: 'DIN', fatigueLoad: 5,  scheme: { sets: 3, reps: '15',  rpe: 6, rest: 60 } },
+
+  // ===== PALESTRA — SPALLE =====
+  { id: 'gm-ohp',          type: 'GYM', skill: 'SPALLE',    name: 'Lento Avanti (OHP)',        category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 14, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-lat-raise',    type: 'GYM', skill: 'SPALLE',    name: 'Alzate Laterali',           category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 7,  scheme: { sets: 4, reps: '15',  rpe: 7, rest: 60 } },
+  { id: 'gm-front-raise',  type: 'GYM', skill: 'SPALLE',    name: 'Alzate Frontali',           category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 60 } },
+  { id: 'gm-rear-delt',    type: 'GYM', skill: 'SPALLE',    name: 'Alzate Posteriori',         category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 4, reps: '15',  rpe: 7, rest: 60 } },
+  { id: 'gm-arnold',       type: 'GYM', skill: 'SPALLE',    name: 'Arnold Press',              category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 12, scheme: { sets: 3, reps: '10',  rpe: 8, rest: 90 } },
+  { id: 'gm-shrug',        type: 'GYM', skill: 'SPALLE',    name: 'Scrollate (Shrug)',         category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+
+  // ===== PALESTRA — BICIPITI =====
+  { id: 'gm-curl-bar',     type: 'GYM', skill: 'BICIPITI',  name: 'Curl con Bilanciere',       category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 4, reps: '10',  rpe: 7, rest: 90 } },
+  { id: 'gm-curl-dumb',    type: 'GYM', skill: 'BICIPITI',  name: 'Curl con Manubri',          category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 7,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 75 } },
+  { id: 'gm-hammer',       type: 'GYM', skill: 'BICIPITI',  name: 'Hammer Curl',               category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 7,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 75 } },
+  { id: 'gm-preacher',     type: 'GYM', skill: 'BICIPITI',  name: 'Curl al Panca Scott',       category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '10',  rpe: 8, rest: 90 } },
+  { id: 'gm-cable-curl',   type: 'GYM', skill: 'BICIPITI',  name: 'Curl al Cavo',              category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 60 } },
+  { id: 'gm-conc-curl',    type: 'GYM', skill: 'BICIPITI',  name: 'Curl di Concentrazione',    category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 60 } },
+
+  // ===== PALESTRA — TRICIPITI =====
+  { id: 'gm-pushdown',     type: 'GYM', skill: 'TRICIPITI', name: 'Pushdown al Cavo',          category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 7,  scheme: { sets: 4, reps: '12',  rpe: 7, rest: 75 } },
+  { id: 'gm-skull',        type: 'GYM', skill: 'TRICIPITI', name: 'Skull Crusher',             category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 10, scheme: { sets: 3, reps: '10',  rpe: 8, rest: 90 } },
+  { id: 'gm-ohd-ext',      type: 'GYM', skill: 'TRICIPITI', name: 'Estensione Sopraccapo',     category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 75 } },
+  { id: 'gm-kickback',     type: 'GYM', skill: 'TRICIPITI', name: 'Tricep Kickback',           category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 5,  scheme: { sets: 3, reps: '15',  rpe: 6, rest: 60 } },
+  { id: 'gm-cgbp',         type: 'GYM', skill: 'TRICIPITI', name: 'Panca Presa Stretta',       category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 13, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 120 } },
+  { id: 'gm-dip-tri',      type: 'GYM', skill: 'TRICIPITI', name: 'Dip (tricipiti)',           category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 11, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 90 } },
+
+  // ===== PALESTRA — GAMBE =====
+  { id: 'gm-squat',        type: 'GYM', skill: 'GAMBE',     name: 'Squat con Bilanciere',      category: 'FORCE', level: 3, stimulus: 'DIN', fatigueLoad: 24, scheme: { sets: 4, reps: '6',   rpe: 8, rest: 210 } },
+  { id: 'gm-leg-press',    type: 'GYM', skill: 'GAMBE',     name: 'Leg Press',                 category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 18, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 150 } },
+  { id: 'gm-leg-ext',      type: 'GYM', skill: 'GAMBE',     name: 'Leg Extension',             category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 10, scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-leg-curl',     type: 'GYM', skill: 'GAMBE',     name: 'Leg Curl',                  category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 10, scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-rdl',          type: 'GYM', skill: 'GAMBE',     name: 'Stacco Rumeno (RDL)',       category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 18, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 150 } },
+  { id: 'gm-lunge',        type: 'GYM', skill: 'GAMBE',     name: 'Affondi',                   category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 14, scheme: { sets: 3, reps: '12',  rpe: 7, rest: 90 } },
+  { id: 'gm-calf',         type: 'GYM', skill: 'GAMBE',     name: 'Calf Raise',                category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 4, reps: '15',  rpe: 7, rest: 60 } },
+  { id: 'gm-hack-squat',   type: 'GYM', skill: 'GAMBE',     name: 'Hack Squat',                category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 20, scheme: { sets: 4, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-bss',          type: 'GYM', skill: 'GAMBE',     name: 'Bulgarian Split Squat',     category: 'FORCE', level: 3, stimulus: 'DIN', fatigueLoad: 18, scheme: { sets: 3, reps: '8',   rpe: 8, rest: 150 } },
+  { id: 'gm-hip-thrust',   type: 'GYM', skill: 'GAMBE',     name: 'Hip Thrust',                category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 14, scheme: { sets: 4, reps: '10',  rpe: 8, rest: 120 } },
+
+  // ===== PALESTRA — CORE =====
+  { id: 'gm-crunch',       type: 'GYM', skill: 'CORE_G',    name: 'Crunch',                    category: 'ACC',   level: 1, stimulus: 'DIN', fatigueLoad: 5,  scheme: { sets: 3, reps: '15',  rpe: 6, rest: 45 } },
+  { id: 'gm-leg-raise',    type: 'GYM', skill: 'CORE_G',    name: 'Leg Raise',                 category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 60 } },
+  { id: 'gm-plank',        type: 'GYM', skill: 'CORE_G',    name: 'Plank',                     category: 'ACC',   level: 1, stimulus: 'ISO', fatigueLoad: 5,  scheme: { sets: 3, reps: '45s', rpe: 6, rest: 45 } },
+  { id: 'gm-russian',      type: 'GYM', skill: 'CORE_G',    name: 'Russian Twist',             category: 'ACC',   level: 1, stimulus: 'DIN', fatigueLoad: 5,  scheme: { sets: 3, reps: '20',  rpe: 6, rest: 45 } },
+  { id: 'gm-cable-crunch', type: 'GYM', skill: 'CORE_G',    name: 'Cable Crunch',              category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 7,  scheme: { sets: 3, reps: '15',  rpe: 7, rest: 60 } },
+  { id: 'gm-ab-machine',   type: 'GYM', skill: 'CORE_G',    name: 'Crunch Machine',            category: 'FORCE', level: 1, stimulus: 'DIN', fatigueLoad: 6,  scheme: { sets: 3, reps: '15',  rpe: 6, rest: 45 } },
+  { id: 'gm-hanging-knee', type: 'GYM', skill: 'CORE_G',    name: 'Knee Raise alle Spalle',    category: 'FORCE', level: 2, stimulus: 'DIN', fatigueLoad: 8,  scheme: { sets: 3, reps: '12',  rpe: 7, rest: 60 } },
+
   // ===== FINISHER POOL =====
   { id: 'fn-l-sit',        skill: 'CORE', name: 'L-Sit Hold',                      category: 'FORCE', level: 2, stimulus: 'ISO', fatigueLoad: 7,  scheme: { sets: 3, reps: '20s', rpe: 8, rest: 60 } },
   { id: 'fn-v-sit',        skill: 'CORE', name: 'V-Sit Hold',                      category: 'FORCE', level: 4, stimulus: 'ISO', fatigueLoad: 12, scheme: { sets: 3, reps: '8s',  rpe: 8, rest: 90 } },
@@ -92,7 +156,7 @@ window.SP_PROG_INDEX = (() => {
   return idx;
 })();
 
-window.SP_BY_ID = Object.fromEntries(window.SP_EXERCISES.map(e => [e.id, e]));
+window.SP_BY_ID = Object.fromEntries(window.SP_EXERCISES.map(e => [e.id, { type: 'CAL', ...e }]));
 
 // Schema giorno di default per ogni allenamento (label suggerita)
 window.SP_DAY_TEMPLATES = [

@@ -2,6 +2,7 @@
 /* global React */
 
 function Planner({ state, actions, tweaks, t }) {
+  const [filterType, setFilterType] = React.useState('CAL');
   const [filterSkill, setFilterSkill] = React.useState('ALL');
   const [search, setSearch] = React.useState('');
   const [dupOpen, setDupOpen] = React.useState(false);
@@ -9,7 +10,14 @@ function Planner({ state, actions, tweaks, t }) {
   const [weekPresetOpen, setWeekPresetOpen] = React.useState(false);
   const [sessionPresetCtx, setSessionPresetCtx] = React.useState(null);  // { weekIdx, dayIdx }
   const [finisherCtx, setFinisherCtx] = React.useState(null);
-  const [exEditorCtx, setExEditorCtx] = React.useState(null);  // null | 'new' | existing exercise object
+  const [exEditorCtx, setExEditorCtx] = React.useState(null);  // null | { _new:true, initialForm } | existing exercise object
+
+  function openNewExercise() {
+    var initialForm = filterType === 'GYM'
+      ? { type: 'GYM', name: '', skill: 'PETTO', category: 'COMPOUND', level: 2, stimulus: 'DIN', fatigueLoad: 12, scheme: { sets: 3, reps: '10', rpe: 8, rest: 90 } }
+      : { type: 'CAL', name: '', skill: 'PLANCHE', category: 'SKILL', level: 3, stimulus: 'ISO', fatigueLoad: 15, scheme: { sets: 4, reps: '6', rpe: 8, rest: 120 } };
+    setExEditorCtx({ _new: true, initialForm: initialForm });
+  }
   const [viewMode, setViewMode] = React.useState('grid');      // 'grid' | 'focus'
   const [focusDayIdx, setFocusDayIdx] = React.useState(0);
   const [catalogOpen, setCatalogOpen] = React.useState(false);
@@ -24,11 +32,12 @@ function Planner({ state, actions, tweaks, t }) {
   const filtered = React.useMemo(() => {
     const all = [...window.SP_EXERCISES, ...userExercises];
     return all.filter(ex => {
+      if ((ex.type || 'CAL') !== filterType) return false;
       if (filterSkill !== 'ALL' && ex.skill !== filterSkill) return false;
       if (search && !ex.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [filterSkill, search, userExercises]);
+  }, [filterType, filterSkill, search, userExercises]);
 
   const grouped = React.useMemo(() => {
     const g = {};
@@ -40,7 +49,7 @@ function Planner({ state, actions, tweaks, t }) {
     return g;
   }, [filtered]);
 
-  const skillFilters = [
+  const calSkillFilters = [
     { id: 'ALL', label: 'All' },
     { id: 'PLANCHE', label: 'Planche' },
     { id: 'FL', label: 'Front Lever' },
@@ -48,6 +57,17 @@ function Planner({ state, actions, tweaks, t }) {
     { id: 'CORE', label: 'Core' },
     { id: 'ACC', label: 'Acc' },
   ];
+  const gymSkillFilters = [
+    { id: 'ALL', label: 'Tutti' },
+    { id: 'PETTO', label: 'Petto' },
+    { id: 'SCHIENA', label: 'Schiena' },
+    { id: 'SPALLE', label: 'Spalle' },
+    { id: 'BICIPITI', label: 'Bicipiti' },
+    { id: 'TRICIPITI', label: 'Tricipiti' },
+    { id: 'GAMBE', label: 'Gambe' },
+    { id: 'CORE_G', label: 'Core' },
+  ];
+  const skillFilters = filterType === 'GYM' ? gymSkillFilters : calSkillFilters;
 
   const skillTitleMap = {
     PLANCHE: 'Planche',
@@ -55,6 +75,14 @@ function Planner({ state, actions, tweaks, t }) {
     HSPU: 'HSPU / Handstand',
     CORE: 'Core',
     ACC: 'Accessory',
+    // Gym
+    PETTO: 'Petto',
+    SCHIENA: 'Schiena',
+    SPALLE: 'Spalle',
+    BICIPITI: 'Bicipiti',
+    TRICIPITI: 'Tricipiti',
+    GAMBE: 'Gambe',
+    CORE_G: 'Core',
   };
 
   return (
@@ -68,7 +96,18 @@ function Planner({ state, actions, tweaks, t }) {
         <div className="catalog__head">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div className="catalog__title">{t.catalog}</div>
-            <button className="btn btn--sm" onClick={() => setExEditorCtx('new')} title="Aggiungi esercizio custom">+ esercizio</button>
+            <button className="btn btn--sm" onClick={openNewExercise} title="Aggiungi esercizio custom">+ esercizio</button>
+          </div>
+          {/* CAL / GYM toggle */}
+          <div className="type-toggle">
+            <button
+              className={`type-toggle__btn ${filterType === 'CAL' ? 'type-toggle__btn--active' : ''}`}
+              onClick={() => { setFilterType('CAL'); setFilterSkill('ALL'); }}
+            >🤸 Calisthenics</button>
+            <button
+              className={`type-toggle__btn ${filterType === 'GYM' ? 'type-toggle__btn--active' : ''}`}
+              onClick={() => { setFilterType('GYM'); setFilterSkill('ALL'); }}
+            >🏋️ Palestra</button>
           </div>
           <input
             className="catalog__search"
@@ -295,7 +334,8 @@ function Planner({ state, actions, tweaks, t }) {
         <ExerciseEditorModal
           onClose={() => setExEditorCtx(null)}
           actions={actions}
-          existing={exEditorCtx === 'new' ? null : exEditorCtx}
+          existing={exEditorCtx._new ? null : exEditorCtx}
+          initialForm={exEditorCtx._new ? exEditorCtx.initialForm : null}
         />
       )}
     </div>

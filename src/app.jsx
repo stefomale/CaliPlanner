@@ -13,6 +13,7 @@ function App() {
   const [state, actions] = window.SP_STORE.useSpStore();
   const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
   const [tab, setTab] = React.useState('planner');
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   // Apply theme + density attributes
   React.useEffect(() => {
@@ -29,6 +30,11 @@ function App() {
     { id: 'docs',     label: tt.docs },
   ];
 
+  function handleTabClick(id) {
+    setTab(id);
+    setMenuOpen(false);
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -36,16 +42,31 @@ function App() {
           <span className="topbar__brand-mark"></span>
           <span className="topbar__brand-text">CaliPlanner</span>
         </div>
+
+        {/* Desktop tabs — hidden on mobile */}
         <div className="topbar__tabs">
           {tabs.map(tabDef => (
             <button
               key={tabDef.id}
               className={`tab ${tab === tabDef.id ? 'tab--active' : ''}`}
-              onClick={() => setTab(tabDef.id)}
+              onClick={() => handleTabClick(tabDef.id)}
             >{tabDef.label}</button>
           ))}
         </div>
+
+        {/* Always visible: profiles + sync */}
+        <ProfileSwitcher />
         <SyncButton />
+
+        {/* Hamburger — mobile only */}
+        <button
+          className={`hamburger-btn${menuOpen ? ' hamburger-btn--open' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Menu navigazione"
+        >
+          <span /><span /><span />
+        </button>
+
         <div className="topbar__meta">
           <span className="topbar__chip">
             {state.meso.weeks.length}w · {tweaks.daysPerWeek}d/w
@@ -53,6 +74,17 @@ function App() {
           <span>v0.2</span>
         </div>
       </header>
+
+      {/* Mobile dropdown nav */}
+      <div className={`mobile-nav${menuOpen ? ' mobile-nav--open' : ''}`}>
+        {tabs.map(tabDef => (
+          <button
+            key={tabDef.id}
+            className={`mobile-nav__item${tab === tabDef.id ? ' mobile-nav__item--active' : ''}`}
+            onClick={() => handleTabClick(tabDef.id)}
+          >{tabDef.label}</button>
+        ))}
+      </div>
 
       <div style={{ overflow: 'hidden', minHeight: 0 }}>
         {tab === 'planner'  && <Planner  state={state} actions={actions} tweaks={tweaks} t={tt} />}
@@ -105,6 +137,27 @@ function SkillTweaksPanel({ tweaks, setTweak }) {
         />
       </TweakSection>
     </TweaksPanel>
+  );
+}
+
+function ProfileSwitcher() {
+  const active = window.SP_STORE.getActiveProfile();
+  const profiles = window.SP_STORE.SP_PROFILES;
+
+  return (
+    <div className="profile-switcher">
+      {Object.entries(profiles).map(([key, p]) => (
+        <button
+          key={key}
+          className={`profile-btn ${active === key ? 'profile-btn--active' : ''}`}
+          onClick={() => active !== key && window.SP_STORE.switchProfile(key)}
+          title={p.label}
+        >
+          <span className="profile-btn__emoji">{p.emoji}</span>
+          <span className="profile-btn__label">{p.label}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 

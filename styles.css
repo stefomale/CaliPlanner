@@ -2292,26 +2292,20 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 
   /* --- Topbar --- */
   .topbar {
-    padding: 0 var(--space-3);
-    gap: var(--space-2);
-    height: 48px;
+    padding: 0 12px;
+    gap: 6px;
+    height: 50px;
     flex-wrap: nowrap;
+    overflow: hidden; /* niente overflow orizzontale */
   }
   .topbar__meta { display: none; }
-  .topbar__brand { font-size: 13px; flex-shrink: 0; }
+  .topbar__brand { font-size: 13px; flex-shrink: 0; gap: 0; }
   .topbar__brand-text { display: none; }
-  .topbar__tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .topbar__tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 0 var(--space-3);
-    font-size: 11px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+  .topbar__brand-mark { margin-right: 4px; }
+
+  /* Tabs nascosti su mobile — sostituiti dall'hamburger */
+  .topbar__tabs { display: none; }
+  .tab { white-space: nowrap; flex-shrink: 0; }
 
   /* --- App shell: full height with bottom-safe area --- */
   .app {
@@ -2606,4 +2600,152 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   .preset-group { grid-template-columns: 1fr; }
   .board__actions .view-toggle { width: 100%; }
   .view-toggle__btn { flex: 1; justify-content: center; }
+}
+
+/* ============ TYPE TOGGLE (Calisthenics / Palestra) ============ */
+.type-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.type-toggle__btn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--fg);           /* sempre leggibile */
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.type-toggle__btn--active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.type-toggle__btn:not(.type-toggle__btn--active):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ============ PROFILE SWITCHER ============ */
+.profile-switcher {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  margin-left: auto; /* desktop: spinge tutto a destra */
+}
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--fg); /* sempre leggibile */
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.profile-btn--active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.profile-btn:not(.profile-btn--active):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.profile-btn__emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+@media (max-width: 768px) {
+  /* Label visibile anche su mobile — testo piccolo */
+  .profile-btn__label { font-size: 11px; }
+  .profile-btn { padding: 5px 8px; gap: 3px; }
+  /* Su mobile: profile-switcher subito dopo il brand (NO margin-left: auto) */
+  .profile-switcher { margin-left: 0; }
+}
+
+/* sync-wrap: niente margin-left auto, sta in fila con profili */
+.topbar .sync-wrap {
+  margin-left: 0;
+}
+
+/* ============ HAMBURGER BUTTON ============ */
+.hamburger-btn {
+  display: none; /* nascosto su desktop */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;       /* niente bordo */
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--fg);
+  border-radius: 2px;
+  transition: transform 0.22s ease, opacity 0.15s ease;
+  transform-origin: center;
+}
+.hamburger-btn--open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn--open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-btn--open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+    margin-left: auto; /* spinge hamburger a destra */
+  }
+}
+
+/* ============ MOBILE NAV DROPDOWN ============ */
+.mobile-nav {
+  display: none; /* sempre nascosto su desktop */
+  flex-direction: column;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  z-index: 95;
+  flex-shrink: 0;
+}
+.mobile-nav--open {
+  display: flex;
+}
+.mobile-nav__item {
+  padding: 15px 20px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s, color 0.1s;
+}
+.mobile-nav__item:last-child { border-bottom: none; }
+.mobile-nav__item--active {
+  color: var(--fg);
+  font-weight: 700;
+  background: var(--bg-sunk);
+}
+.mobile-nav__item:active {
+  background: var(--bg-sunk);
 }

@@ -3,23 +3,37 @@
 // ============================================================
 
 (function () {
-  const STORAGE_KEY   = 'skillplanner.v1';
-  const WEBHOOK_KEY   = 'skillplanner.sheetsUrl';
-  const LASTSYNC_KEY  = 'skillplanner.lastSync';
-  const PULLED_KEY    = 'skillplanner.autoPulled'; // sessionStorage — reset ad ogni nuova tab
-  const DEFAULT_URL   = 'https://script.google.com/macros/s/AKfycbzF2gbqU0AXJgjbqXC6Ovg5bE4ViY8mrOGBE5K5cnYTLG8wi6B9MRwp3eLAsrfQZfMQ4Q/exec';
+  // ── Profile-aware keys ────────────────────────────────────
+  const DEFAULT_URLS = {
+    lulu: 'https://script.google.com/macros/s/AKfycbz06ropN1VgsRFCyfLyj7IRsRWHj_BxjenpiOjiJsMAp1a1GE7vavBqQFdq9zBfwx92/exec',
+    gru:  'https://script.google.com/macros/s/AKfycbzF2gbqU0AXJgjbqXC6Ovg5bE4ViY8mrOGBE5K5cnYTLG8wi6B9MRwp3eLAsrfQZfMQ4Q/exec',
+  };
 
-  // Preimposta l'URL se non è ancora salvato
-  if (!localStorage.getItem(WEBHOOK_KEY)) {
-    localStorage.setItem(WEBHOOK_KEY, DEFAULT_URL);
+  function getActiveProfile() {
+    return window.SP_STORE?.getActiveProfile?.() || 'lulu';
   }
+  function getStoreKey()    { return 'skillplanner.v1.'       + getActiveProfile(); }
+  function getWebhookKey()  { return 'skillplanner.sheetsUrl.' + getActiveProfile(); }
+  function getLastSyncKey() { return 'skillplanner.lastSync.'  + getActiveProfile(); }
+  function getPulledKey()   { return 'skillplanner.autoPulled.' + getActiveProfile(); }
+
+  // Preimposta l'URL se non è ancora salvato per il profilo attivo
+  (function presetUrl() {
+    const key = getWebhookKey();
+    if (!localStorage.getItem(key)) {
+      const def = DEFAULT_URLS[getActiveProfile()];
+      if (def) localStorage.setItem(key, def);
+    }
+  })();
 
   // ── URL webhook ───────────────────────────────────────────
   function getWebhookUrl(force) {
-    let url = localStorage.getItem(WEBHOOK_KEY);
+    const key = getWebhookKey();
+    let url = localStorage.getItem(key);
     if (!url || force) {
+      const profile = getActiveProfile();
       url = prompt(
-        '📋 Incolla qui l\'URL del tuo Apps Script Web App\n' +
+        `📋 Incolla qui l'URL del tuo Apps Script Web App per il profilo "${profile}"\n` +
         '(Apps Script → Deploy → Gestisci deployment → copia URL):',
         url || ''
       );
@@ -28,14 +42,14 @@
         return null;
       }
       url = url.trim();
-      localStorage.setItem(WEBHOOK_KEY, url);
+      localStorage.setItem(getWebhookKey(), url);
     }
     return url;
   }
 
   // ── Payload per il push ───────────────────────────────────
   function buildPayload() {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStoreKey());
     if (!raw) throw new Error('Nessun dato trovato in locale (skillplanner.v1).');
     const state = JSON.parse(raw);
     const exerciseNames = {};
@@ -62,29 +76,30 @@
   // Se i dati su Sheets sono diversi da quelli locali aggiorna e ricarica.
   // Il flag in sessionStorage evita loop: si resetta alla chiusura della tab.
   async function autoPull() {
-    if (sessionStorage.getItem(PULLED_KEY)) return; // già fatto in questa sessione
-    const url = localStorage.getItem(WEBHOOK_KEY);
+    const pulledKey = getPulledKey();
+    if (sessionStorage.getItem(pulledKey)) return; // già fatto in questa sessione
+    const url = localStorage.getItem(getWebhookKey());
     if (!url) return; // non ancora configurato
 
     try {
       const remoteState = await fetchFromSheets(url);
-      sessionStorage.setItem(PULLED_KEY, '1');
+      sessionStorage.setItem(pulledKey, '1');
 
       const remoteJson = JSON.stringify(remoteState);
-      const localJson  = localStorage.getItem(STORAGE_KEY) || '';
+      const localJson  = localStorage.getItem(getStoreKey()) || '';
 
       if (remoteJson !== localJson) {
         // Dati diversi: aggiorna silenziosamente e ricarica
-        localStorage.setItem(STORAGE_KEY, remoteJson);
-        localStorage.setItem(LASTSYNC_KEY,
+        localStorage.setItem(getStoreKey(), remoteJson);
+        localStorage.setItem(getLastSyncKey(),
           new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
         );
         location.reload();
-        // Il reload imposta subito PULLED_KEY, quindi il secondo caricamento non ri-fetcherà
+        // Il reload imposta subito pulledKey, quindi il secondo caricamento non ri-fetcherà
       }
     } catch (_) {
       // Errore silenzioso — la webapp continua con i dati locali
-      sessionStorage.setItem(PULLED_KEY, '1'); // non riprovare in questa sessione
+      sessionStorage.setItem(pulledKey, '1'); // non riprovare in questa sessione
     }
   }
 
@@ -110,9 +125,9 @@
       });
 
       const now = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      localStorage.setItem(LASTSYNC_KEY, now);
+      localStorage.setItem(getLastSyncKey(), now);
       // Dopo un push consideriamo i dati "freschi" per questa sessione
-      sessionStorage.setItem(PULLED_KEY, '1');
+      sessionStorage.setItem(getPulledKey(), '1');
 
       if (!silent) alert('✅ Dati salvati su Google Sheets!');
       return true;
@@ -131,11 +146,11 @@
 
     try {
       const remoteState = await fetchFromSheets(url);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteState));
-      localStorage.setItem(LASTSYNC_KEY,
+      localStorage.setItem(getStoreKey(), JSON.stringify(remoteState));
+      localStorage.setItem(getLastSyncKey(),
         new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
       );
-      sessionStorage.setItem(PULLED_KEY, '1');
+      sessionStorage.setItem(getPulledKey(), '1');
       location.reload();
     } catch (err) {
       alert('❌ ' + err.message);
@@ -147,9 +162,9 @@
     push:         pushToSheets,
     pull:         pullFromSheets,
     configureUrl: () => getWebhookUrl(true),
-    clearUrl:     () => { localStorage.removeItem(WEBHOOK_KEY); alert('URL rimosso.'); },
-    getUrl:       () => localStorage.getItem(WEBHOOK_KEY),
-    getLastSync:  () => localStorage.getItem(LASTSYNC_KEY),
+    clearUrl:     () => { localStorage.removeItem(getWebhookKey()); alert('URL rimosso.'); },
+    getUrl:       () => localStorage.getItem(getWebhookKey()),
+    getLastSync:  () => localStorage.getItem(getLastSyncKey()),
   };
 
   // ── Componente React: pulsanti ⬆ ⬇ ⚙ ─────────────────────
